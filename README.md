@@ -14,4 +14,4 @@ The application also includes:
 - Platform: Android mobile application
 - Sensors: MAX30102 (HR & SpO₂), MPU6050 (fall detection), MLX90614 (temperature)
 - Backend Services: Firebase (authentication, data sync, push notifications)
-- Database: SQLite for offline access
+- Database: Firebase
