@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.moeen4"
+    namespace = "com.example.moeen"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -45,9 +45,7 @@ flutter {
     source = "../.."
 }
 dependencies {
-    // منصة Firebase BOM (لتوحيد الإصدارات)
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
 
-    // مثال: Firebase Analytics (يمكنك إضافة غيره لاحقًا)
     implementation("com.google.firebase:firebase-analytics")
 }
