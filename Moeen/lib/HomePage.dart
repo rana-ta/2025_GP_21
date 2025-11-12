@@ -1,11 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'TabsPage.dart';
+import 'package:moeen/sensors_screen.dart';
 import 'SettingsPage.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:flutter/services.dart' show Clipboard, ClipboardData;
-
 
 /// ==============================
 /// Brand tokens
@@ -15,46 +12,66 @@ class _Brand {
   static const black = Color(0xFF0B0F19);
   static const black2 = Color(0xFF141927);
   static const card = Color(0xFF141927);
-
 }
 
 class FamilyTrackerTab extends StatelessWidget {
   const FamilyTrackerTab({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Family Tracker', style: TextStyle(color: Colors.white)));
+    return const Center(
+      child: Text('Family Tracker', style: TextStyle(color: Colors.white)),
+    );
   }
 }
 
 class DuasTab extends StatelessWidget {
   const DuasTab({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Duas', style: TextStyle(color: Colors.white)));
+    return const Center(
+      child: Text('Duas', style: TextStyle(color: Colors.white)),
+    );
   }
 }
 
 class ChatBotPage extends StatelessWidget {
   const ChatBotPage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Chat Bot', style: TextStyle(color: Colors.white)));
+    return const Center(
+      child: Text('Chat Bot', style: TextStyle(color: Colors.white)),
+    );
   }
 }
 
 ///  (Vitals)
 class VitalsTab extends StatelessWidget {
   const VitalsTab({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: const [
         SectionTitle('Vitals Dashboard'),
-        SizedBox(height: 12),
-        CardShell(child: Text('Live heart rate, SpO₂, temperature…', style: TextStyle(color: Colors.white70))),
-        SizedBox(height: 12),
-        CardShell(child: Text('Trends & alerts (coming soon)', style: TextStyle(color: Colors.white70))),
+        // SizedBox(height: 12),
+        // CardShell(
+        //   child: Text(
+        //     'Live heart rate, SpO₂, temperature…',
+        //     style: TextStyle(color: Colors.white70),
+        //   ),
+        // ),
+        SensorScreen(),
+        // SizedBox(height: 12),
+        // CardShell(
+        //   child: Text(
+        //     'Trends & alerts (coming soon)',
+        //     style: TextStyle(color: Colors.white70),
+        //   ),
+        // ),
       ],
     );
   }
@@ -62,6 +79,7 @@ class VitalsTab extends StatelessWidget {
 
 class EmergencyCardPage extends StatelessWidget {
   const EmergencyCardPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -79,7 +97,10 @@ class EmergencyCardPage extends StatelessWidget {
               SizedBox(height: 6),
               Text('Allergies: —', style: TextStyle(color: Colors.white)),
               SizedBox(height: 6),
-              Text('Emergency Contact: —', style: TextStyle(color: Colors.white)),
+              Text(
+                'Emergency Contact: —',
+                style: TextStyle(color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -91,6 +112,7 @@ class EmergencyCardPage extends StatelessWidget {
 /// Home Page with BottomNavigation
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -101,12 +123,12 @@ class _HomePageState extends State<HomePage> {
 
   // BottomNavigationBar
   final List<Widget> _pages = const [
-    HomeTab(),            // 0 Home
-    FamilyTrackerTab(),   // 1 Family
-    DuasTab(),            // 2 Duas
-    ChatBotPage(),        // 3 Chat
-    VitalsTab(),          // 4 Vitals
-    EmergencyCardPage(),  // 5 Emergency
+    HomeTab(), // 0 Home
+    FamilyTrackerTab(), // 1 Family
+    DuasTab(), // 2 Duas
+    ChatBotPage(), // 3 Chat
+    VitalsTab(), // 4 Vitals
+    EmergencyCardPage(), // 5 Emergency
   ];
 
   @override
@@ -167,7 +189,11 @@ class _HomePageState extends State<HomePage> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Image(image: _bg, fit: BoxFit.cover, filterQuality: FilterQuality.low),
+              child: Image(
+                image: _bg,
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
+              ),
             ),
             Positioned.fill(
               child: Container(color: Colors.black.withOpacity(0.40)),
@@ -183,12 +209,30 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _index,
           onTap: (i) => setState(() => _index = i),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.map_rounded), label: 'Family'),
-            BottomNavigationBarItem(icon: Icon(Icons.menu_book_rounded), label: 'Duas'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_rounded), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.monitor_heart_rounded), label: 'Vitals'),
-            BottomNavigationBarItem(icon: Icon(Icons.sos_rounded), label: 'Emergency'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.map_rounded),
+              label: 'Family',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.menu_book_rounded),
+              label: 'Duas',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble_rounded),
+              label: 'Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.monitor_heart_rounded),
+              label: 'Vitals',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sos_rounded),
+              label: 'Emergency',
+            ),
           ],
         ),
       ),
@@ -199,6 +243,7 @@ class _HomePageState extends State<HomePage> {
 /// HomeTab
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
   @override
   State<HomeTab> createState() => _HomeTabState();
 }
@@ -222,19 +267,22 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
     _DiscoveryCard(
       title: 'How to perform Umrah',
       subtitle: 'Guidance for Umrah steps',
-      url: 'https://www.islamic-relief.org.uk/resources/knowledge-base/umrah/how-to-perform-umrah/',
+      url:
+      'https://www.islamic-relief.org.uk/resources/knowledge-base/umrah/how-to-perform-umrah/',
       icon: Icons.verified,
     ),
     _DiscoveryCard(
       title: 'Ministry of Health Guide',
       subtitle: 'Health guidance for pilgrims (PDF)',
-      url: 'https://www.moh.gov.sa/awarenessplateform/SeasonalAndFestivalHealth/Documents/004.pdf',
+      url:
+      'https://www.moh.gov.sa/awarenessplateform/SeasonalAndFestivalHealth/Documents/004.pdf',
       icon: Icons.policy,
     ),
     _DiscoveryCard(
       title: 'Common Mistakes',
       subtitle: 'What to avoid during Hajj and Umrah',
-      url: 'https://www.muslimpro.com/common-mistakes-committed-during-umrah-and-hajj/',
+      url:
+      'https://www.muslimpro.com/common-mistakes-committed-during-umrah-and-hajj/',
       icon: Icons.mosque,
     ),
   ];
@@ -313,7 +361,10 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _duas.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.25,
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.25,
       ),
       itemBuilder: (_, i) {
         final d = _duas[i];
@@ -325,7 +376,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               Expanded(
                 child: Text(
                   d.text,
-                  style: const TextStyle(color: Colors.white, height: 1.4, fontSize: 13.5),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    height: 1.4,
+                    fontSize: 13.5,
+                  ),
                   overflow: TextOverflow.fade,
                 ),
               ),
@@ -342,7 +397,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         _buildTawafCard(
           'Tawaf',
           tawaf,
-          onInc: () => setState(() => tawaf = (tawaf < totalLaps) ? tawaf + 1 : totalLaps),
+          onInc: () => setState(
+                () => tawaf = (tawaf < totalLaps) ? tawaf + 1 : totalLaps,
+          ),
           onDec: () => setState(() => tawaf = (tawaf > 0) ? tawaf - 1 : 0),
           onReset: () => setState(() => tawaf = 0),
         ),
@@ -350,7 +407,8 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         _buildTawafCard(
           'Sa’i',
           sai,
-          onInc: () => setState(() => sai = (sai < totalLaps) ? sai + 1 : totalLaps),
+          onInc: () =>
+              setState(() => sai = (sai < totalLaps) ? sai + 1 : totalLaps),
           onDec: () => setState(() => sai = (sai > 0) ? sai - 1 : 0),
           onReset: () => setState(() => sai = 0),
         ),
@@ -382,7 +440,11 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
               stroke: 10,
               center: Text(
                 "$current/$totalLaps",
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
@@ -391,7 +453,14 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -403,10 +472,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _Brand.gold,
                             foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 0,
                           ),
-                          child: const Text('−', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                          child: const Text(
+                            '−',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -419,10 +496,18 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _Brand.gold,
                             foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 0,
                           ),
-                          child: const Text('+', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                          child: const Text(
+                            '+',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -434,10 +519,15 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                           onPressed: onReset,
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: _Brand.gold),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             foregroundColor: _Brand.gold,
                           ),
-                          child: const Text('Reset', style: TextStyle(fontWeight: FontWeight.w700)),
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ),
                     ),
@@ -458,11 +548,18 @@ class _DiscoveryCard {
   final String subtitle;
   final String url;
   final IconData icon;
-  const _DiscoveryCard({required this.title, required this.subtitle, required this.url, required this.icon});
+
+  const _DiscoveryCard({
+    required this.title,
+    required this.subtitle,
+    required this.url,
+    required this.icon,
+  });
 }
 
 class _DiscoveryTile extends StatelessWidget {
   final _DiscoveryCard card;
+
   const _DiscoveryTile({required this.card});
 
   @override
@@ -476,20 +573,27 @@ class _DiscoveryTile extends StatelessWidget {
           bool ok = false;
           try {
             ok = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
-            if (!ok) ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+            if (!ok)
+              ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
           } catch (_) {
             ok = false;
           }
           if (!ok && context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Cannot open link'), backgroundColor: Colors.black87),
+              const SnackBar(
+                content: Text('Cannot open link'),
+                backgroundColor: Colors.black87,
+              ),
             );
           }
         },
         child: Row(
           children: [
             Container(
-              decoration: BoxDecoration(color: _Brand.black2, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(
+                color: _Brand.black2,
+                borderRadius: BorderRadius.circular(14),
+              ),
               padding: const EdgeInsets.all(12),
               child: Icon(card.icon, color: _Brand.gold, size: 28),
             ),
@@ -498,15 +602,26 @@ class _DiscoveryTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(card.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15.5)),
+                  Text(
+                    card.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15.5,
+                    ),
+                  ),
                   const SizedBox(height: 6),
-                  Text(card.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 13.5)),
+                  Text(
+                    card.subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: 13.5,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -522,7 +637,12 @@ class _DiscoveryTile extends StatelessWidget {
 class CardShell extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
-  const CardShell({required this.child, this.padding = const EdgeInsets.all(14), super.key});
+
+  const CardShell({
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -533,7 +653,13 @@ class CardShell extends StatelessWidget {
         color: _Brand.card,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _Brand.gold.withOpacity(0.22)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 10, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: child,
     );
@@ -542,10 +668,19 @@ class CardShell extends StatelessWidget {
 
 class SectionTitle extends StatelessWidget {
   final String text;
+
   const SectionTitle(this.text, {super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(color: _Brand.gold, fontSize: 18, fontWeight: FontWeight.w700));
+    return Text(
+      text,
+      style: const TextStyle(
+        color: _Brand.gold,
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+      ),
+    );
   }
 }
 
@@ -554,7 +689,14 @@ class CircularProgress extends StatelessWidget {
   final double size;
   final double stroke;
   final Widget center;
-  const CircularProgress({required this.progress, required this.size, required this.stroke, required this.center, super.key});
+
+  const CircularProgress({
+    required this.progress,
+    required this.size,
+    required this.stroke,
+    required this.center,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -569,6 +711,7 @@ class CircularProgress extends StatelessWidget {
 class _CircularProgressPainter extends CustomPainter {
   final double progress;
   final double stroke;
+
   _CircularProgressPainter(this.progress, this.stroke);
 
   @override
@@ -581,7 +724,12 @@ class _CircularProgressPainter extends CustomPainter {
 
     final Paint active = Paint()
       ..shader = const LinearGradient(colors: [_Brand.gold, Colors.amberAccent])
-          .createShader(Rect.fromCircle(center: size.center(Offset.zero), radius: size.width / 2))
+          .createShader(
+        Rect.fromCircle(
+          center: size.center(Offset.zero),
+          radius: size.width / 2,
+        ),
+      )
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round;
@@ -591,15 +739,22 @@ class _CircularProgressPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, base);
     final sweep = 2 * math.pi * progress.clamp(0, 1);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi / 2, sweep, false, active);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      sweep,
+      false,
+      active,
+    );
   }
 
   @override
-  bool shouldRepaint(_CircularProgressPainter old) => old.progress != progress || old.stroke != stroke;
+  bool shouldRepaint(_CircularProgressPainter old) =>
+      old.progress != progress || old.stroke != stroke;
 }
-
 
 class _DuaItem {
   final String text;
+
   const _DuaItem(this.text);
 }
