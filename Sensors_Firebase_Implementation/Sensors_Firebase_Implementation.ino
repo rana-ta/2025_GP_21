@@ -12,8 +12,8 @@
 #include <Adafruit_MLX90614.h>
 
 // Wi-Fi details
-#define WIFI_SSID     "Rana"
-#define WIFI_PASSWORD "rana2003"
+#define WIFI_SSID     ""
+#define WIFI_PASSWORD ""
 
 // Firebase Configuration
 #define API_KEY "AIzaSyB8qVAcLPsMS2tLEonGFsw7Yz8VFF9mtBo"
