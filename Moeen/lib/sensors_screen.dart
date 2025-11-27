@@ -13,15 +13,13 @@ class SensorScreen extends StatefulWidget {
 }
 
 class _SensorScreenState extends State<SensorScreen> {
-  final DatabaseReference _sensorRef = FirebaseDatabase.instance.ref().child(
-    'sensorData',
-  );
+  final DatabaseReference _sensorRef =
+  FirebaseDatabase.instance.ref().child('Predections');
+
   late Box<SensorData> _historyBox;
 
   int heartRate = 0;
   int spo2 = 0;
-  int ir = 0;
-  int red = 0;
   double temperature = 0.0;
   String status = '...';
 
@@ -36,15 +34,13 @@ class _SensorScreenState extends State<SensorScreen> {
 
       if (data != null) {
         setState(() {
-          heartRate = data['heartRate'] ?? 0;
-          spo2 = data['spo2'] ?? 0;
-          ir = data['ir'] ?? 0;
-          red = data['red'] ?? 0;
-          temperature = (data['temperature'] ?? 0).toDouble();
-          status = data['status'] ?? '...';
+          heartRate = (data['heartRate'] as num?)?.toInt() ?? 0;
+          spo2 = (data['spo2'] as num?)?.toInt() ?? 0;
+          temperature = (data['temperature'] as num?)?.toDouble() ?? 0.0;
+
+          status = (data['HealthStatus'] as String?) ?? '...';
         });
 
-        // Save to local storage
         _saveToHistory();
       }
     });
@@ -54,8 +50,8 @@ class _SensorScreenState extends State<SensorScreen> {
     final sensorData = SensorData(
       heartRate: heartRate,
       spo2: spo2,
-      ir: ir,
-      red: red,
+      ir: 0,
+      red: 0,
       status: status,
       timestamp: DateTime.now(),
     );
@@ -73,9 +69,8 @@ class _SensorScreenState extends State<SensorScreen> {
     if (values.isEmpty) return [];
 
     // Get last 20 readings
-    final recentData = values.length > 20
-        ? values.sublist(values.length - 20)
-        : values;
+    final recentData =
+    values.length > 20 ? values.sublist(values.length - 20) : values;
 
     return recentData.asMap().entries.map((entry) {
       double value = 0;
@@ -121,7 +116,7 @@ class _SensorScreenState extends State<SensorScreen> {
                   const SizedBox(width: 8),
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -177,7 +172,8 @@ class _SensorScreenState extends State<SensorScreen> {
                     gridData: FlGridData(
                       show: true,
                       drawVerticalLine: false,
-                      horizontalInterval: type == 'heartRate' ? 20 : 10,
+                      horizontalInterval:
+                      type == 'heartRate' ? 20 : 10,
                       getDrawingHorizontalLine: (value) {
                         return FlLine(
                           color: Colors.grey[300],
@@ -213,8 +209,6 @@ class _SensorScreenState extends State<SensorScreen> {
                       ),
                     ),
                     borderData: FlBorderData(show: false),
-                    // minY: type == 'heartRate' ? 40 : 80,
-                    // maxY: type == 'heartRate' ? 120 : 100,
                     lineBarsData: [
                       LineChartBarData(
                         spots: data,
@@ -224,7 +218,8 @@ class _SensorScreenState extends State<SensorScreen> {
                         isStrokeCapRound: true,
                         dotData: FlDotData(
                           show: true,
-                          getDotPainter: (spot, percent, barData, index) {
+                          getDotPainter:
+                              (spot, percent, barData, index) {
                             return FlDotCirclePainter(
                               radius: 2,
                               color: color,
@@ -250,7 +245,7 @@ class _SensorScreenState extends State<SensorScreen> {
   }
 
   Widget buildStatusCard() {
-    final isOk = status.toLowerCase() == 'connected';
+    final isOk = status.toLowerCase() == 'normal';
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -284,7 +279,7 @@ class _SensorScreenState extends State<SensorScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Status',
                   style: TextStyle(fontSize: 14, color: Colors.white),
                 ),
@@ -318,37 +313,11 @@ class _SensorScreenState extends State<SensorScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
+              children: const [
+                Text(
                   'Current Readings',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                // IconButton(
-                //   icon: const Icon(Icons.delete_outline),
-                //   onPressed: () async {
-                //     final confirm = await showDialog<bool>(
-                //       context: context,
-                //       builder: (context) => AlertDialog(
-                //         title: const Text('Clear History'),
-                //         content: const Text('Delete all historical data?'),
-                //         actions: [
-                //           TextButton(
-                //             onPressed: () => Navigator.pop(context, false),
-                //             child: const Text('Cancel'),
-                //           ),
-                //           TextButton(
-                //             onPressed: () => Navigator.pop(context, true),
-                //             child: const Text('Delete'),
-                //           ),
-                //         ],
-                //       ),
-                //     );
-                //     if (confirm == true) {
-                //       await _historyBox.clear();
-                //       setState(() {});
-                //     }
-                //   },
-                // ),
               ],
             ),
             const SizedBox(height: 12),
@@ -386,54 +355,8 @@ class _SensorScreenState extends State<SensorScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
             buildStatusCard(),
-
-            const SizedBox(height: 24),
-
-            // Charts Section
-            // const Text(
-            //   'Trends',
-            //   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 12),
-            // buildChartCard('Heart Rate Trend', 'heartRate', Colors.red),
-            // const SizedBox(height: 12),
-            // buildChartCard('SpO2 Trend', 'spo2', Colors.blue),
-
-            // const SizedBox(height: 24),
-
-            // Additional Data
-            // const Text(
-            //   'Sensor Readings',
-            //   style: TextStyle(
-            //     fontSize: 20,
-            //     fontWeight: FontWeight.bold,
-            //   ),
-            // ),
-            // const SizedBox(height: 12),
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: buildCurrentValueCard(
-            //         'IR',
-            //         '$ir',
-            //         Icons.sensors,
-            //         Colors.orange,
-            //       ),
-            //     ),
-            //     const SizedBox(width: 12),
-            //     Expanded(
-            //       child: buildCurrentValueCard(
-            //         'Red',
-            //         '$red',
-            //         Icons.lens,
-            //         Colors.purple,
-            //       ),
-            //     ),
-            //   ],
-            // ),
             const SizedBox(height: 16),
             Center(
               child: Text(
