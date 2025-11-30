@@ -197,7 +197,7 @@ class _SignUpPageState extends State<SignupPage> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/images/kab.jpg', fit: BoxFit.cover),
+            child: Image.asset('assets/images/background.jpg', fit: BoxFit.cover),
           ),
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.35)),
@@ -286,7 +286,6 @@ class _SignUpPageState extends State<SignupPage> {
 
                           const SizedBox(height: 10),
 
-                          // قائمة الشروط تحت الباسورد
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -367,3 +366,4 @@ class _SignUpPageState extends State<SignupPage> {
     );
   }
 }
+
