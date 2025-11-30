@@ -26,6 +26,12 @@ class _SignUpPageState extends State<SignupPage> {
   String? _emailError;
   String? _passwordError;
 
+  bool hasMinLength = false;
+  bool hasLower = false;
+  bool hasUpper = false;
+  bool hasNumber = false;
+  bool hasSpecial = false;
+
   @override
   void initState() {
     super.initState();
@@ -55,37 +61,54 @@ class _SignUpPageState extends State<SignupPage> {
       setState(() => _emailError = 'Please enter your email address.');
       return;
     }
-    if (!RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$').hasMatch(email)) {
-      setState(() => _emailError = 'Please enter a valid email address in the correct format.');
+    if (!RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$')
+        .hasMatch(email)) {
+      setState(() => _emailError =
+      'Please enter a valid email address in the correct format.');
       return;
     }
-    List<String> methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+    List<String> methods =
+    await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
     if (methods.isNotEmpty) {
-      setState(() => _emailError = 'This email is already in use. Please log in instead.');
+      setState(() =>
+      _emailError = 'This email is already in use. Please log in instead.');
     } else {
       setState(() => _emailError = null);
     }
   }
 
   void _validatePassword(String value) {
+    setState(() {
+      hasMinLength = value.length >= 8;
+      hasLower = RegExp(r'[a-z]').hasMatch(value);
+      hasUpper = RegExp(r'[A-Z]').hasMatch(value);
+      hasNumber = RegExp(r'[0-9]').hasMatch(value);
+      hasSpecial =
+          RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-\\/[\];]').hasMatch(value);
+    });
+
     if (value.isEmpty) {
       setState(() => _passwordError = 'Please enter your password.');
-      return;
-    }
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$').hasMatch(value)) {
-      setState(() => _passwordError =
-      'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special symbol.');
     } else {
       setState(() => _passwordError = null);
     }
   }
+
+  bool get _allPasswordConditionsMet =>
+      hasMinLength && hasLower && hasUpper && hasNumber && hasSpecial;
 
   Future<void> _submitForm() async {
     await _checkUsername();
     await _checkEmail();
     _validatePassword(_passwordController.text);
 
-    if (_usernameError != null || _emailError != null || _passwordError != null) return;
+    if (!_allPasswordConditionsMet) {
+      setState(() => _passwordError = 'Please meet all password requirements.');
+    }
+
+    if (_usernameError != null ||
+        _emailError != null ||
+        _passwordError != null) return;
 
     setState(() => _isLoading = true);
 
@@ -105,7 +128,6 @@ class _SignUpPageState extends State<SignupPage> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -114,14 +136,15 @@ class _SignUpPageState extends State<SignupPage> {
             : null;
         _passwordError = e.code == 'weak-password'
             ? 'Password is too weak. Please use a stronger password.'
-            : null;
+            : _passwordError;
       });
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  InputDecoration _inputDecoration(String label, Color gold, {String? errorText}) {
+  InputDecoration _inputDecoration(String label, Color gold,
+      {String? errorText}) {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: Colors.white70),
@@ -140,6 +163,28 @@ class _SignUpPageState extends State<SignupPage> {
         borderSide: BorderSide(color: gold, width: 1.4),
         borderRadius: BorderRadius.circular(14),
       ),
+    );
+  }
+
+  Widget _conditionRow(bool ok, String text) {
+    return Row(
+      children: [
+        Icon(
+          ok ? Icons.check : Icons.close,
+          color: ok ? Colors.white : Colors.grey,
+          size: 18,
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: ok ? Colors.white : Colors.grey,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -164,11 +209,13 @@ class _SignUpPageState extends State<SignupPage> {
                 filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
                   width: 360,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                   decoration: BoxDecoration(
                     color: glassBg,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    border:
+                    Border.all(color: Colors.white.withOpacity(0.12)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.25),
@@ -196,13 +243,17 @@ class _SignUpPageState extends State<SignupPage> {
                           // Username
                           TextFormField(
                             controller: _usernameController,
+                            focusNode: _usernameFocus,
                             style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Username', gold, errorText: _usernameError),
+                            decoration: _inputDecoration('Username', gold,
+                                errorText: _usernameError),
                             validator: (_) => _usernameError,
                             onChanged: (_) {
-                              String username = _usernameController.text.trim();
+                              String username =
+                              _usernameController.text.trim();
                               if (username.isEmpty) {
-                                setState(() => _usernameError = 'Please enter your username.');
+                                setState(() => _usernameError =
+                                'Please enter your username.');
                               } else {
                                 setState(() => _usernameError = null);
                               }
@@ -215,7 +266,8 @@ class _SignUpPageState extends State<SignupPage> {
                             controller: _emailController,
                             focusNode: _emailFocus,
                             style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Email', gold, errorText: _emailError),
+                            decoration: _inputDecoration('Email', gold,
+                                errorText: _emailError),
                             validator: (_) => _emailError,
                             onChanged: (_) => _checkEmail(),
                           ),
@@ -226,21 +278,49 @@ class _SignUpPageState extends State<SignupPage> {
                             controller: _passwordController,
                             obscureText: true,
                             style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Password', gold, errorText: _passwordError),
+                            decoration: _inputDecoration('Password', gold,
+                                errorText: _passwordError),
                             validator: (_) => _passwordError,
                             onChanged: _validatePassword,
                           ),
+
+                          const SizedBox(height: 10),
+
+                          // قائمة الشروط تحت الباسورد
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _conditionRow(
+                                  hasMinLength, 'At least 8 characters.'),
+                              const SizedBox(height: 4),
+                              _conditionRow(hasLower,
+                                  'Includes a lowercase letter.'),
+                              const SizedBox(height: 4),
+                              _conditionRow(hasUpper,
+                                  'Includes an uppercase letter.'),
+                              const SizedBox(height: 4),
+                              _conditionRow(
+                                  hasSpecial,
+                                  'Contains at least one special character.'),
+                              const SizedBox(height: 4),
+                              _conditionRow(
+                                  hasNumber, 'Contains numbers (0–9).'),
+                            ],
+                          ),
+
                           const SizedBox(height: 16),
 
                           Row(
                             children: [
                               Checkbox(
                                 value: _trackFamily,
-                                onChanged: (value) => setState(() => _trackFamily = value!),
+                                onChanged: (value) => setState(
+                                        () => _trackFamily = value ?? false),
                                 checkColor: Colors.black,
                                 activeColor: gold,
                               ),
-                              const Text('Track family members', style: TextStyle(color: Colors.white70)),
+                              const Text('Track family members',
+                                  style: TextStyle(color: Colors.white70)),
                             ],
                           ),
                           const SizedBox(height: 22),
@@ -252,17 +332,27 @@ class _SignUpPageState extends State<SignupPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: gold,
                               foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 80, vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
                             ),
-                            child: const Text('Sign Up', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           TextButton(
-                            onPressed: () => Navigator.pushNamed(context, '/login'),
-                            child: const Text('Already have an account? Log in', style: TextStyle(color: Colors.white70)),
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/login'),
+                            child: const Text(
+                              'Already have an account? Log in',
+                              style: TextStyle(color: Colors.white70),
+                            ),
                           ),
                         ],
                       ),
