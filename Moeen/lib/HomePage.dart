@@ -14,16 +14,261 @@ class _Brand {
   static const card = Color(0xFF141927);
 }
 
-class FamilyTrackerTab extends StatelessWidget {
+class FamilyTrackerTab extends StatefulWidget {
   const FamilyTrackerTab({super.key});
 
   @override
+  State<FamilyTrackerTab> createState() => _FamilyTrackerTabState();
+}
+
+class _FamilyTrackerTabState extends State<FamilyTrackerTab> {
+  final TextEditingController _familyCodeController = TextEditingController();
+  String _generatedCode = '';
+
+  // مثال بسيط لقائمة أفراد العائلة مع روابط خرائط
+  final List<_FamilyMember> _members = const [
+    _FamilyMember(
+      name: 'Mother',
+      mapUrl: 'https://www.google.com/maps?q=21.4225,39.8262', // مثال
+    ),
+    _FamilyMember(
+      name: 'Father',
+      mapUrl: 'https://www.google.com/maps?q=21.4226,39.8263',
+    ),
+    _FamilyMember(
+      name: 'Sister',
+      mapUrl: 'https://www.google.com/maps?q=21.4227,39.8264',
+    ),
+  ];
+
+  String _generateRandomCode() {
+    final rnd = math.Random();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return List.generate(6, (_) => chars[rnd.nextInt(chars.length)]).join();
+  }
+
+  Future<void> _openMaps(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot open Google Maps'),
+            backgroundColor: Colors.black87,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error opening map link'),
+          backgroundColor: Colors.black87,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _familyCodeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Family Tracker', style: TextStyle(color: Colors.white)),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const SectionTitle('Family Connection'),
+        const SizedBox(height: 12),
+
+        // Box: Already have a family code?
+        CardShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Already have a family code?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Enter the family code shared with you to join your group.',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _familyCodeController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Enter family code',
+                  hintStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: _Brand.black2,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                    BorderSide(color: _Brand.gold.withOpacity(0.5)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                    BorderSide(color: _Brand.gold.withOpacity(0.3)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 42,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // هنا لاحقاً تربطون الكود مع الفايربيس لو حبيتوا
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Join family logic goes here'),
+                        backgroundColor: Colors.black87,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _Brand.gold,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Join Family',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Box: Generated code
+        CardShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Generated family code',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Share this code with your family so they can join your group.',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _Brand.black2,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _Brand.gold.withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _generatedCode.isEmpty
+                            ? 'No code generated yet'
+                            : _generatedCode,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          letterSpacing: 1.2,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: _Brand.gold),
+                      onPressed: () {
+                        setState(() {
+                          _generatedCode = _generateRandomCode();
+                        });
+                      },
+                      tooltip: 'Generate new code',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        const SectionTitle('Family Members & Locations'),
+        const SizedBox(height: 10),
+
+        // List of family members with Google Maps link
+        ..._members.map((m) {
+          return CardShell(
+            child: Row(
+              children: [
+                const Icon(Icons.person_pin_circle,
+                    color: _Brand.gold, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    m.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => _openMaps(m.mapUrl),
+                  icon: const Icon(Icons.map_rounded, color: _Brand.gold),
+                  label: const Text(
+                    'Open map',
+                    style: TextStyle(color: _Brand.gold),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 }
+
+class _FamilyMember {
+  final String name;
+  final String mapUrl;
+
+  const _FamilyMember({
+    required this.name,
+    required this.mapUrl,
+  });
+}
+
 
 class DuasTab extends StatelessWidget {
   const DuasTab({super.key});
@@ -56,7 +301,7 @@ class VitalsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: const [
-        SectionTitle('Vitals Dashboard'),
+        SectionTitle('Vitals'),
         // SizedBox(height: 12),
         // CardShell(
         //   child: Text(
@@ -151,10 +396,10 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/logo_moeen.png',
-                height: 26,
+                'assets/images/logo_moeen.png',
+                height: 40,
                 errorBuilder: (_, __, ___) =>
-                const Icon(Icons.favorite, color: _Brand.gold, size: 22),
+                const Icon(Icons.favorite, color: _Brand.gold, size: 50),
               ),
               const SizedBox(width: 8),
               const Text(
@@ -168,10 +413,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           actions: [
-            const Padding(
-              padding: EdgeInsetsDirectional.only(end: 6.0),
-              child: Icon(Icons.notifications_none_rounded, color: _Brand.gold),
-            ),
+
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 10.0),
               child: IconButton(
@@ -468,30 +710,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                       child: SizedBox(
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: onDec,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _Brand.gold,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            '−',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: SizedBox(
-                        height: 44,
-                        child: ElevatedButton(
                           onPressed: onInc,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _Brand.gold,
@@ -501,16 +719,41 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            '+',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
+                          child: const Icon(
+                            Icons.add,          // ← بدل الـ Text('+')
+                            size: 24,
+                            color: Colors.black,
                           ),
                         ),
                       ),
                     ),
+
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 44,
+                        child: ElevatedButton(
+                          onPressed: onDec,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _Brand.gold,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.remove,
+                              size: 24,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(width: 8),
                     Expanded(
                       child: SizedBox(
