@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/images/kab.jpg', fit: BoxFit.cover),
+          Image.asset('assets/images/background.jpg', fit: BoxFit.cover),
           Container(color: Colors.black.withOpacity(0.6)),
 
           Center(
@@ -301,3 +301,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
