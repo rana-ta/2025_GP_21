@@ -33,7 +33,7 @@ class MoeenApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFD4AF37), // ذهبي
+          primary: Color(0xFFD4AF37), 
           secondary: Colors.white70,
           surface: Color(0xFF1E1E1E),
           onSurface: Colors.white,
@@ -77,3 +77,4 @@ class MoeenApp extends StatelessWidget {
     );
   }
 }
+
