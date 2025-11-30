@@ -39,7 +39,7 @@ class _RegistrationLandingPageState extends State<RegistrationLandingPage> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Image.asset('assets/images/kab.jpg', fit: BoxFit.cover),
+              child: Image.asset('assets/images/background.jpg', fit: BoxFit.cover),
             ),
 
             Positioned.fill(
@@ -158,4 +158,5 @@ class _RegistrationLandingPageState extends State<RegistrationLandingPage> {
       ),
     );
   }
+
 }
