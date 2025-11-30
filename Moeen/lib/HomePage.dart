@@ -111,7 +111,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _index = 0;
-  late final AssetImage _bg = const AssetImage('assets/images/kab.jpg');
+  late final AssetImage _bg = const AssetImage('assets/images/background.jpg');
 
   // BottomNavigationBar
   final List<Widget> _pages = const [
@@ -748,3 +748,4 @@ class _DuaItem {
 
   const _DuaItem(this.text);
 }
+
