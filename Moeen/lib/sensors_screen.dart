@@ -1,10 +1,11 @@
-sensors_screen
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../model/sensors.dart';
 
 class SensorScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class SensorScreen extends StatefulWidget {
 }
 
 class _SensorScreenState extends State<SensorScreen> {
+  // ✅ RTDB node name = Predections (مثل ما هو عندك)
   final DatabaseReference _sensorRef =
   FirebaseDatabase.instance.ref().child('Predections');
 
@@ -25,25 +27,31 @@ class _SensorScreenState extends State<SensorScreen> {
   double temperature = 0.0;
   String status = '...';
 
+  DateTime? _lastSyncAt;
+
   @override
   void initState() {
     super.initState();
     _historyBox = Hive.box<SensorData>('sensorHistory');
 
-    // Listen to changes in Realtime Database
-    _sensorRef.onValue.listen((event) {
+    _sensorRef.onValue.listen((event) async {
       final data = event.snapshot.value as Map<dynamic, dynamic>?;
+      if (data == null) return;
 
-      if (data != null) {
-        setState(() {
-          heartRate = (data['heartRate'] as num?)?.toInt() ?? 0;
-          spo2 = (data['spo2'] as num?)?.toInt() ?? 0;
-          temperature = (data['temperature'] as num?)?.toDouble() ?? 0.0;
+      setState(() {
+        heartRate = (data['heartRate'] as num?)?.toInt() ?? 0;
+        spo2 = (data['spo2'] as num?)?.toInt() ?? 0;
+        temperature = (data['temperature'] as num?)?.toDouble() ?? 0.0;
+        status = (data['HealthStatus'] as String?) ?? '...';
+      });
 
-          status = (data['HealthStatus'] as String?) ?? '...';
-        });
+      _saveToHistory();
 
-        _saveToHistory();
+      // ✅ مزامنة للفاميلي كل ثانيتين
+      final now = DateTime.now();
+      if (_lastSyncAt == null || now.difference(_lastSyncAt!).inSeconds >= 2) {
+        _lastSyncAt = now;
+        await syncPredictionToFamily(data);
       }
     });
   }
@@ -60,17 +68,64 @@ class _SensorScreenState extends State<SensorScreen> {
 
     _historyBox.add(sensorData);
 
-    // Keep only last 100 records to save space
     if (_historyBox.length > 100) {
       _historyBox.deleteAt(0);
     }
   }
 
+  // ✅ نحدد familyId الصحيح اللي نكتب فيه
+  Future<String?> _getFamilyIdForWriting(FirebaseFirestore fs, String uid) async {
+    final userSnap = await fs.collection('users').doc(uid).get();
+    final u = userSnap.data();
+    if (u == null) return null;
+
+    // الأولوية: familyId (عضو/منضم) ثم familyCode (تراكر)
+    final familyId = (u['familyId'] as String?)?.trim();
+    if (familyId != null && familyId.isNotEmpty) return familyId;
+
+    final familyCode = (u['familyCode'] as String?)?.trim();
+    if (familyCode != null && familyCode.isNotEmpty) return familyCode;
+
+    return null;
+  }
+
+  // ✅ هذا الربط اللي يخلي FamilyPage يعرض قراءاتك (HR/Temp/SpO2)
+  Future<void> syncPredictionToFamily(Map<dynamic, dynamic> data) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final fs = FirebaseFirestore.instance;
+
+    final familyId = await _getFamilyIdForWriting(fs, user.uid);
+    if (familyId == null || familyId.isEmpty) return;
+
+    final hr = (data['heartRate'] as num?)?.toInt() ?? 0;
+    final s = (data['spo2'] as num?)?.toInt() ?? 0;
+    final t = (data['temperature'] as num?)?.toDouble() ?? 0.0;
+    final hs = (data['HealthStatus'] as String?) ?? '...';
+
+    // ✅ نخزن status بصيغة ok/abnormal عشان كرت الفاملي يفهمها
+    final isAbnormal = hs.toLowerCase() != 'normal';
+
+    await fs
+        .collection('families')
+        .doc(familyId)
+        .collection('members')
+        .doc(user.uid)
+        .set({
+      'hr': hr,
+      'spo2': s.toDouble(),
+      'tempC': t,
+      'status': isAbnormal ? 'abnormal' : 'ok',
+      'healthUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  // (اختياري) charts عندك.. تركتها كما هي
   List<FlSpot> _getChartData(String type) {
     final values = _historyBox.values.toList();
     if (values.isEmpty) return [];
 
-    // Get last 20 readings
     final recentData =
     values.length > 20 ? values.sublist(values.length - 20) : values;
 
@@ -142,110 +197,6 @@ class _SensorScreenState extends State<SensorScreen> {
     );
   }
 
-  Widget buildChartCard(String title, String type, Color color) {
-    final data = _getChartData(type);
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                height: 200,
-                child: data.isEmpty
-                    ? Center(
-                  child: Text(
-                    'No data yet',
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                )
-                    : LineChart(
-                  LineChartData(
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      horizontalInterval:
-                      type == 'heartRate' ? 20 : 10,
-                      getDrawingHorizontalLine: (value) {
-                        return FlLine(
-                          color: Colors.grey[300],
-                          strokeWidth: 1,
-                        );
-                      },
-                    ),
-                    titlesData: FlTitlesData(
-                      show: true,
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40,
-                          getTitlesWidget: (value, meta) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      bottomTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: data,
-                        isCurved: true,
-                        color: color,
-                        barWidth: 3,
-                        isStrokeCapRound: true,
-                        dotData: FlDotData(
-                          show: true,
-                          getDotPainter:
-                              (spot, percent, barData, index) {
-                            return FlDotCirclePainter(
-                              radius: 2,
-                              color: color,
-                              strokeWidth: 2,
-                              strokeColor: Colors.white,
-                            );
-                          },
-                        ),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: color.withOpacity(0.1),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget buildStatusCard() {
     final isOk = status.toLowerCase() == 'normal';
     return Card(
@@ -305,22 +256,16 @@ class _SensorScreenState extends State<SensorScreen> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {});
-      },
+      onRefresh: () async => setState(() {}),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  'Current Readings',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ],
+            const SizedBox(height: 8),
+            const Text(
+              'Current Readings',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -370,10 +315,5 @@ class _SensorScreenState extends State<SensorScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
