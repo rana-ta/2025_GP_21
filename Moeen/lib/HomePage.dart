@@ -8,6 +8,7 @@ import 'package:moeen/sensors_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
+
 import 'DuasPage.dart';
 import 'SettingsPage.dart';
 import 'FamilyTrackerTab.dart';
@@ -65,7 +66,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _index = 0;
-  late final AssetImage _bg = const AssetImage('assets/images/kab.jpg');
+  late final AssetImage _bg = const AssetImage('assets/images/background.jpg');
 
   late final List<Widget> _pages = const [
     HomeTab(), // 0 Home
