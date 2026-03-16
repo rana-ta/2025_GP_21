@@ -16,9 +16,10 @@ class SensorScreen extends StatefulWidget {
 }
 
 class _SensorScreenState extends State<SensorScreen> {
-  // ✅ RTDB node name = Predections (مثل ما هو عندك)
-  final DatabaseReference _sensorRef =
-  FirebaseDatabase.instance.ref().child('Predections');
+  // RTDB node for sensor readings and health status
+  final DatabaseReference _sensorRef = FirebaseDatabase.instance.ref().child(
+    'Predections',
+  );
 
   late Box<SensorData> _historyBox;
 
@@ -47,7 +48,7 @@ class _SensorScreenState extends State<SensorScreen> {
 
       _saveToHistory();
 
-      // ✅ مزامنة للفاميلي كل ثانيتين
+      // Sync data to the family view every 2 seconds
       final now = DateTime.now();
       if (_lastSyncAt == null || now.difference(_lastSyncAt!).inSeconds >= 2) {
         _lastSyncAt = now;
@@ -73,13 +74,16 @@ class _SensorScreenState extends State<SensorScreen> {
     }
   }
 
-  // ✅ نحدد familyId الصحيح اللي نكتب فيه
-  Future<String?> _getFamilyIdForWriting(FirebaseFirestore fs, String uid) async {
+  // Resolve the correct family ID for writing
+  Future<String?> _getFamilyIdForWriting(
+    FirebaseFirestore fs,
+    String uid,
+  ) async {
     final userSnap = await fs.collection('users').doc(uid).get();
     final u = userSnap.data();
     if (u == null) return null;
 
-    // الأولوية: familyId (عضو/منضم) ثم familyCode (تراكر)
+    // Priority: familyId first, then familyCode
     final familyId = (u['familyId'] as String?)?.trim();
     if (familyId != null && familyId.isNotEmpty) return familyId;
 
@@ -89,7 +93,7 @@ class _SensorScreenState extends State<SensorScreen> {
     return null;
   }
 
-  // ✅ هذا الربط اللي يخلي FamilyPage يعرض قراءاتك (HR/Temp/SpO2)
+// Sync readings so the FamilyPage can display HR, temperature, and SpO2
   Future<void> syncPredictionToFamily(Map<dynamic, dynamic> data) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -104,7 +108,7 @@ class _SensorScreenState extends State<SensorScreen> {
     final t = (data['temperature'] as num?)?.toDouble() ?? 0.0;
     final hs = (data['HealthStatus'] as String?) ?? '...';
 
-    // ✅ نخزن status بصيغة ok/abnormal عشان كرت الفاملي يفهمها
+// Store status as ok/abnormal so the family card can read it correctly
     final isAbnormal = hs.toLowerCase() != 'normal';
 
     await fs
@@ -113,21 +117,22 @@ class _SensorScreenState extends State<SensorScreen> {
         .collection('members')
         .doc(user.uid)
         .set({
-      'hr': hr,
-      'spo2': s.toDouble(),
-      'tempC': t,
-      'status': isAbnormal ? 'abnormal' : 'ok',
-      'healthUpdatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+          'hr': hr,
+          'spo2': s.toDouble(),
+          'tempC': t,
+          'status': isAbnormal ? 'abnormal' : 'ok',
+          'healthUpdatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
   }
 
-  // (اختياري) charts عندك.. تركتها كما هي
+  // Optional chart data generation
   List<FlSpot> _getChartData(String type) {
     final values = _historyBox.values.toList();
     if (values.isEmpty) return [];
 
-    final recentData =
-    values.length > 20 ? values.sublist(values.length - 20) : values;
+    final recentData = values.length > 20
+        ? values.sublist(values.length - 20)
+        : values;
 
     return recentData.asMap().entries.map((entry) {
       double value = 0;
@@ -144,11 +149,11 @@ class _SensorScreenState extends State<SensorScreen> {
   }
 
   Widget buildCurrentValueCard(
-      String title,
-      String value,
-      IconData icon,
-      Color color,
-      ) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
