@@ -8,8 +8,8 @@
 #include <Adafruit_MLX90614.h>
 
 // ===================== WiFi =====================
-#define WIFI_SSID     ""   // <-- wifi credentails
-#define WIFI_PASSWORD ""   // <-- wifi credentails
+#define WIFI_SSID     ""   //  wifi credentails
+#define WIFI_PASSWORD ""   //  wifi credentails
 
 // ===================== Firebase =====================
 #define API_KEY "AIzaSyB8qVAcLPsMS2tLEonGFsw7Yz8VFF9mtBo"
