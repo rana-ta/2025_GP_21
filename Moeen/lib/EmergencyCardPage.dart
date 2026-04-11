@@ -33,9 +33,9 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
 
   // SOS & TEST numbers
   static const String kSosPhone =
-      '0554358805'; // Example SOS number for testing
+      '0544401528'; // Example SOS number for testing
   static const String kTestPhone =
-      '0554358805'; // Put your test number here, then clear it later if needed
+      '0544401528'; // Put your test number here, then clear it later if needed
 
   // Brand
   static const gold = Color(0xFFD4AF37);
@@ -77,10 +77,10 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
   ];
 
   Widget _lettersOnlyField(
-    TextEditingController c,
-    String hint, {
-    int maxLen = 40,
-  }) {
+      TextEditingController c,
+      String hint, {
+        int maxLen = 40,
+      }) {
     return TextField(
       controller: c,
       keyboardType: TextInputType.name,
@@ -169,10 +169,10 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
           items: _bloodTypes
               .map(
                 (t) => DropdownMenuItem(
-                  value: t,
-                  child: Text(t, style: const TextStyle(color: Colors.white)),
-                ),
-              )
+              value: t,
+              child: Text(t, style: const TextStyle(color: Colors.white)),
+            ),
+          )
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -863,16 +863,15 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
         ? "https://maps.google.com/?q=${_lastLat!.toStringAsFixed(5)},${_lastLng!.toStringAsFixed(5)}"
         : "Unavailable";
 
-    _preparedSOSMessage =
-    "Moeen Team Alert\n"
-        "Status:$statusText \n"
-         "Name:$nameText\n"
-         "Blood:$bloodText\n"
+        _preparedSOSMessage =
+    "Moeen Alert\n"
+        "Status:$statusText\n"
+        "Name:$nameText\n"
         "Phone:$phoneText\n"
-        "Allergy:$allergyText\n"
-        "Chronic:$chronicText\n"
-        "Location:$locationLink";
-
+        "Med:$meds\n"
+        "Alg:$allergyText\n"
+        "Cond:$chronic\n"
+        "loc:https://maps.google.com/?q=${_lastLat?.toStringAsFixed(4)},${_lastLng?.toStringAsFixed(4)}";
     debugPrint("🚨 SOS READY:\n$_preparedSOSMessage");
   }
 
@@ -1180,8 +1179,8 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
                 const SizedBox(height: 4),
                 Text(
                   "ID: ${idNumber.isEmpty ? "—" : idNumber} • "
-                  "Age: ${age.isEmpty ? "—" : age} • "
-                  "${nationality.isEmpty ? "—" : nationality}",
+                      "Age: ${age.isEmpty ? "—" : age} • "
+                      "${nationality.isEmpty ? "—" : nationality}",
                   style: const TextStyle(color: Colors.white70, fontSize: 12.5),
                 ),
               ],
@@ -1338,7 +1337,7 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
                 const SizedBox(height: 4),
                 Text(
                   "${emergencyContact.trim().isEmpty ? "—" : emergencyContact} • "
-                  "${emergencyPhone.trim().isEmpty ? "—" : emergencyPhone}",
+                      "${emergencyPhone.trim().isEmpty ? "—" : emergencyPhone}",
 
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
