@@ -557,7 +557,7 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              "HealthStatus: $healthStatus",
+                              "HealthStatus: ${_currentAlertSource == AlertSource.fall ? "FALL" : healthStatus}",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
@@ -849,7 +849,10 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
     }
   }
   void _prepareSOSPayload() {
-    final statusText = healthStatus.trim().isEmpty ? "-" : healthStatus;
+    final statusText =
+    (_currentAlertSource == AlertSource.fall || fallStatus == "PENDING")
+        ? "FALL"
+        : (healthStatus.trim().isEmpty ? "-" : healthStatus);
     final nameText = fullName.trim().isEmpty ? "-" : fullName;
     final bloodText = bloodType.trim().isEmpty ? "-" : bloodType;
     final phoneText = emergencyPhone.trim().isEmpty ? "-" : emergencyPhone;
