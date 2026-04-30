@@ -14,6 +14,9 @@ State<ChatBotPage> createState() => _ChatBotPageState();
 
 class _ChatBotPageState extends State<ChatBotPage>
 with AutomaticKeepAliveClientMixin {
+@override
+bool get wantKeepAlive => true;
+  
 // Brand
 static const gold = Color(0xFFD4AF37);
 static const black2 = Color(0xFF141927);
@@ -84,21 +87,21 @@ Future<void> _send() async {
     _msgCtrl.clear();
     _msgs.add(_ChatMsg.bot("Typing...", time: _clock()));
   });
-
+  if (!_online) return;
   final reply = await _sendToBot(t);
 
   setState(() {
-    _msgs.removeLast();
+    _msgs.removeWhere((m) => m.text == "Typing...");
     _msgs.add(_ChatMsg.bot(reply, time: _clock()));
   });
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (_scroll.hasClients) {
-      _scroll.animateTo(
-        _scroll.position.maxScrollExtent + 300,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+         if (_scroll.hasClients) {
+          _scroll.jumpTo(_scroll.position.maxScrollExtent);
+         }
+      });
     }
   });
 }
