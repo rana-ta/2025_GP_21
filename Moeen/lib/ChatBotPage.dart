@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
 /// ✅ ChatBot UI (Tab-friendly)
 /// - No Scaffold
 /// - No AppBar
@@ -68,8 +69,6 @@ final List<String> _quickPrompts = const [
 
 bool _online = true;
 
-@override
-bool get wantKeepAlive => true;
 
 @override
 void dispose() {
@@ -85,25 +84,26 @@ Future<void> _send() async {
   setState(() {
     _msgs.add(_ChatMsg.user(t, time: _clock()));
     _msgCtrl.clear();
-    _msgs.add(_ChatMsg.bot("Typing...", time: _clock()));
   });
-  if (!_online) return;
-  final reply = await _sendToBot(t);
+  if (!_online) {
+    setState(() {
+      _msgs.add(_ChatMsg.bot(
+        "I'm currently offline. Enable LIVE to get responses.",
+        time: _clock(),
+      ));
+    });
 
-  setState(() {
-    _msgs.removeWhere((m) => m.text == "Typing...");
-    _msgs.add(_ChatMsg.bot(reply, time: _clock()));
-  });
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (_scroll.hasClients) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (_scroll.hasClients) {
-          _scroll.jumpTo(_scroll.position.maxScrollExtent);
-         }
-      });
-    }
-  });
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 }
 
 String _clock() {
@@ -363,7 +363,10 @@ return Padding(
 padding: const EdgeInsetsDirectional.only(end: 8),
 child: InkWell(
 borderRadius: BorderRadius.circular(999),
-onTap: () => setState(() => _msgCtrl.text = s),
+onTap: () {
+  setState(() => _msgCtrl.text = s);
+  _send();
+},
 child: Container(
 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
 decoration: BoxDecoration(
