@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 /// ✅ ChatBot UI (Tab-friendly)
 /// - No Scaffold
 /// - No AppBar
@@ -17,7 +18,31 @@ with AutomaticKeepAliveClientMixin {
 static const gold = Color(0xFFD4AF37);
 static const black2 = Color(0xFF141927);
 static const card = Color(0xFF0F121A);
+  
 
+Future<String> _sendToBot(String message) async {
+  final url = Uri.parse(
+    "https://moeen-chatbot-production.up.railway.app/chat",
+  );
+
+  try {
+    final res = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"message": message}),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      return data["reply"] ?? "No response";
+    } else {
+      return "Server error: ${res.statusCode}";
+    }
+  } catch (e) {
+    return "Connection error ❌";
+  }
+}
+  
 final TextEditingController _msgCtrl = TextEditingController();
 final ScrollController _scroll = ScrollController();
 
@@ -50,27 +75,32 @@ _scroll.dispose();
 super.dispose();
 }
 
-void _sendUiOnly() {
-final t = _msgCtrl.text.trim();
-if (t.isEmpty) return;
+Future<void> _send() async {
+  final t = _msgCtrl.text.trim();
+  if (t.isEmpty) return;
 
-setState(() {
-_msgs.add(_ChatMsg.user(t, time: _clock()));
-_msgCtrl.clear();
+  setState(() {
+    _msgs.add(_ChatMsg.user(t, time: _clock()));
+    _msgCtrl.clear();
+    _msgs.add(_ChatMsg.bot("Typing...", time: _clock()));
+  });
 
-// UI only bot response
-_msgs.add(_ChatMsg.bot("Got it ✅ (UI only)\nI’ll reply here.", time: _clock()));
-});
+  final reply = await _sendToBot(t);
 
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (_scroll.hasClients) {
-_scroll.animateTo(
-_scroll.position.maxScrollExtent + 250,
-duration: const Duration(milliseconds: 260),
-curve: Curves.easeOut,
-);
-}
-});
+  setState(() {
+    _msgs.removeLast();
+    _msgs.add(_ChatMsg.bot(reply, time: _clock()));
+  });
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_scroll.hasClients) {
+      _scroll.animateTo(
+        _scroll.position.maxScrollExtent + 300,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+  });
 }
 
 String _clock() {
@@ -399,12 +429,12 @@ borderRadius: BorderRadius.circular(16),
 borderSide: const BorderSide(color: gold, width: 1.2),
 ),
 ),
-onSubmitted: (_) => _sendUiOnly(),
+onSubmitted: (_) => _send(),
 ),
 ),
 const SizedBox(width: 10),
 GestureDetector(
-onTap: _sendUiOnly,
+onTap: _send,
 child: Container(
 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
 decoration: BoxDecoration(
