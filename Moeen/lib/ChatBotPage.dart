@@ -77,23 +77,7 @@ _scroll.dispose();
 super.dispose();
 }
 
-Future<void> _send() async {
-  final t = _msgCtrl.text.trim();
-  if (t.isEmpty) return;
-
-  setState(() {
-    _msgs.add(_ChatMsg.user(t, time: _clock()));
-    _msgCtrl.clear();
-  });
-  if (!_online) {
-    setState(() {
-      _msgs.add(_ChatMsg.bot(
-        "I'm currently offline. Enable LIVE to get responses.",
-        time: _clock(),
-      ));
-    });
-
-  void _scrollToBottom() {
+void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
         _scroll.animateTo(
@@ -104,7 +88,41 @@ Future<void> _send() async {
       }
     });
   }
-}
+  
+Future<void> _send() async {
+    final t = _msgCtrl.text.trim();
+    if (t.isEmpty) return;
+ 
+    setState(() {
+      _msgs.add(_ChatMsg.user(t, time: _clock()));
+      _msgCtrl.clear();
+    });
+    _scrollToBottom();
+ 
+    if (!_online) {
+      setState(() {
+        _msgs.add(_ChatMsg.bot(
+          "I'm currently offline. Please enable the LIVE mode to get responses.",
+          time: _clock(),
+        ));
+      });
+      _scrollToBottom();
+      return;
+    }
+ 
+    setState(() {
+      _msgs.add(_ChatMsg.bot("Typing...", time: _clock()));
+    });
+    _scrollToBottom();
+ 
+    final reply = await _sendToBot(t);
+ 
+    setState(() {
+      _msgs.removeWhere((m) => m.text == "Typing...");
+      _msgs.add(_ChatMsg.bot(reply, time: _clock()));
+    });
+    _scrollToBottom();
+  }
 
 String _clock() {
 final now = TimeOfDay.now();
