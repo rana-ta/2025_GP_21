@@ -25,6 +25,7 @@ static const card = Color(0xFF0F121A);
   
 
 Future<String> _sendToBot(String message) async {
+  
   final url = Uri.parse(
     "https://moeen-chatbot-production.up.railway.app/chat",
   );
@@ -32,13 +33,19 @@ Future<String> _sendToBot(String message) async {
   try {
     final res = await http.post(
       url,
+      
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"message": message}),
+      body: jsonEncode({"query": message}),
     );
 
     if (res.statusCode == 200) {
+      
       final data = jsonDecode(res.body);
-      return data["reply"] ?? "No response";
+      if (data["answered"] == true) {
+        return data["answer"];
+      } else {
+        return "Sorry, no answer was found.";
+      }
     } else {
       return "Server error: ${res.statusCode}";
     }
