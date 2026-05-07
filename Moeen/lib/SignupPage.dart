@@ -125,6 +125,7 @@ class _SignUpPageState extends State<SignupPage> {
         'username': _usernameController.text.trim(),
         'email': _emailController.text.trim(),
         'trackFamily': _trackFamily,
+        'deviceId': null,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -366,4 +367,3 @@ class _SignUpPageState extends State<SignupPage> {
     );
   }
 }
-
