@@ -76,10 +76,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-      - assets/images/background.jpg
-      - assets/images/kab.jpg
-      - assets/images/logo_moeen.png
-      - assets/images/sky.jpg
+    - assets/images/background.jpg
+    - assets/images/kab.jpg
+    - assets/images/logo_moeen.png
+    - assets/images/sky.jpg
 
 
   # The following line ensures that the Material Icons font is
