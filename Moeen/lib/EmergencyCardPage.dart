@@ -8,7 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:another_telephony/telephony.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Defines where the alert came from
 enum AlertSource { abnormal, fall }
@@ -33,9 +33,9 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
 
   // SOS & TEST numbers
   static const String kSosPhone =
-      '0544401528'; // Example SOS number for testing
+      '0554358805'; // Example SOS number for testing
   static const String kTestPhone =
-      '0544401528'; // Put your test number here, then clear it later if needed
+      '0554358805'; // Put your test number here, then clear it later if needed
 
   // Brand
   static const gold = Color(0xFFD4AF37);
@@ -187,13 +187,19 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
   /// RTDB reference for sensor readings and health status
 
 
-  final DatabaseReference _sensorRef =
+  /* final DatabaseReference _sensorRef =
   FirebaseDatabase.instance.ref().child('Predections');
 
   final Telephony _telephony = Telephony.instance;
   final DatabaseReference _fallRef =
   FirebaseDatabase.instance.ref().child('fall');
+*/
 
+  DatabaseReference? _sensorRef;
+
+  final Telephony _telephony = Telephony.instance;
+
+  DatabaseReference? _fallRef;
   /// Dialog and alert control flags
   StreamSubscription<DatabaseEvent>? _rtdbSub;
   bool _alertActive = false;
@@ -230,6 +236,17 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
   String _getCurrentUid() {
     return widget.uid ?? FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   }
+  Future<String?> _getCurrentUserDeviceId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    return (doc.data()?['deviceId'] as String?)?.trim();
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -239,7 +256,10 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
     super.initState();
     _uid = _getCurrentUid();
     _loadFromDB();
-    _startListeners();
+
+    Future.microtask(() async {
+      await _startListeners();
+    });
   }
 
   StreamSubscription<DatabaseEvent>? _predSub;
@@ -253,15 +273,40 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
     _sosTimer = null;
   }
 
-  void _startListeners() {
+  Future<void> _startListeners() async {
     _stopListeners();
+
+    final deviceId = await _getCurrentUserDeviceId();
+
+    if (deviceId == null || deviceId.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        healthStatus = "NO DEVICE LINKED";
+        fallStatus = "NONE";
+      });
+      return;
+    }
+
+    _sensorRef = FirebaseDatabase.instance
+        .ref()
+        .child('devices')
+        .child(deviceId)
+        .child('predictions');
+
+    _fallRef = FirebaseDatabase.instance
+        .ref()
+        .child('devices')
+        .child(deviceId)
+        .child('fall');
+
     _listenToHealthStatus();
     _listenToFallStatus();
   }
 
-
   void _listenToHealthStatus() {
-    _predSub = _sensorRef.onValue.listen((event) async {
+    if (_sensorRef == null) return;
+
+    _predSub = _sensorRef!.onValue.listen((event) async {
       final v = event.snapshot.child('HealthStatus').value;
       final hs = (v ?? '...').toString().trim().toUpperCase();
 
@@ -278,8 +323,7 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _dialogOpen || _dialogClosing) return;
-          _currentAlertSource = AlertSource
-              .abnormal; // Set alert source before opening the dialog
+          _currentAlertSource = AlertSource.abnormal;
           _showAreYouOkDialog();
         });
       }
@@ -289,12 +333,12 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
   }
 
   void _listenToFallStatus() {
-    _fallSub = _fallRef.onValue.listen((event) async {
+    if (_fallRef == null) return;
+
+    _fallSub = _fallRef!.onValue.listen((event) async {
       if (!mounted) return;
 
       final raw = event.snapshot.value;
-
-      // Fall data is expected to be a map
       final Map data = (raw is Map) ? raw : {};
 
       final statusUpper = (data['status'] ?? "NONE")
@@ -309,7 +353,6 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
         fallTimestamp = ts;
       });
 
-      // Allow a new alert after fall status returns to NONE
       if (statusUpper == "NONE") {
         _lastFallTimestamp = 0;
         return;
@@ -330,8 +373,7 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _dialogOpen || _dialogClosing) return;
-          _currentAlertSource =
-              AlertSource.fall; // Set alert source before opening the dialog
+          _currentAlertSource = AlertSource.fall;
           _showAreYouOkDialog();
         });
       }
@@ -339,13 +381,14 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
   }
 
   Future<void> _setFallStatus(String status) async {
-    await _fallRef.update({
+    if (_fallRef == null) return;
+
+    await _fallRef!.update({
       'status': status.toUpperCase(),
       'verifiedAt': ServerValue.timestamp,
       'timestamp': ServerValue.timestamp,
     });
   }
-
   @override
   void didUpdateWidget(covariant EmergencyCardPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -369,7 +412,9 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
       fallTimestamp = 0;
 
       _loadFromDB();
-      _startListeners();
+      Future.microtask(() async {
+        await _startListeners();
+      });
     }
   }
 
@@ -849,10 +894,7 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
     }
   }
   void _prepareSOSPayload() {
-    final statusText =
-    (_currentAlertSource == AlertSource.fall || fallStatus == "PENDING")
-        ? "FALL"
-        : (healthStatus.trim().isEmpty ? "-" : healthStatus);
+    final statusText = healthStatus.trim().isEmpty ? "-" : healthStatus;
     final nameText = fullName.trim().isEmpty ? "-" : fullName;
     final bloodText = bloodType.trim().isEmpty ? "-" : bloodType;
     final phoneText = emergencyPhone.trim().isEmpty ? "-" : emergencyPhone;
@@ -863,15 +905,16 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
         ? "https://maps.google.com/?q=${_lastLat!.toStringAsFixed(5)},${_lastLng!.toStringAsFixed(5)}"
         : "Unavailable";
 
-        _preparedSOSMessage =
-    "Moeen Alert\n"
-        "Status:$statusText\n"
+    _preparedSOSMessage =
+    "Moeen Team Alert\n"
+        "Status:$statusText \n"
         "Name:$nameText\n"
+        "Blood:$bloodText\n"
         "Phone:$phoneText\n"
-        "Med:$meds\n"
-        "Alg:$allergyText\n"
-        "Cond:$chronic\n"
-        "loc:https://maps.google.com/?q=${_lastLat?.toStringAsFixed(4)},${_lastLng?.toStringAsFixed(4)}";
+        "Allergy:$allergyText\n"
+        "Chronic:$chronicText\n"
+        "Location:$locationLink";
+
     debugPrint("🚨 SOS READY:\n$_preparedSOSMessage");
   }
 
