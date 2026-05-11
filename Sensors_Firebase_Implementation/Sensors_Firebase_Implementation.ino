@@ -144,34 +144,13 @@ void mpu_read() {
 }
 
 // ---------- Send fall to Firebase: PENDING + timestamp ----------
-void sendFallPendingToFirebase(unsigned long tsSeconds ) {
-  if (!Firebase.RTDB.setString(&fbdo, "/fall/status", "PENDING"))
-    Serial.println("❌ set /fall/status failed: " + fbdo.errorReason());
-
-  if (!Firebase.RTDB.setInt(&fbdo, "/fall/timestamp", (int)tsSeconds))
-    Serial.println("❌ set /fall/timestamp failed: " + fbdo.errorReason());
-
-  Serial.println("✅ Firebase: PENDING sent");
-}
-
-// ---------- SINGLE FALL HANDLER (PENDING only, no immediate buzzer) ----------
-void triggerFallEvent() {
-  if (millis() - lastFallEvent < FALL_COOLDOWN_MS) return;
-  lastFallEvent = millis();
-
-  Serial.println("FALL DETECTED -> sent PENDING (waiting CONFIRMED or 1min)");
-  unsigned long tsSeconds  = millis() / 1000;
-  sendFallPendingToFirebase(tsSeconds );
-}
-
-// ---------- Poll Firebase: CONFIRMED now OR 3-min pending ----------
 void pollFallStatusAndHandleBuzzer() {
   if (millis() - lastStatusPoll < STATUS_POLL_MS) return;
   lastStatusPoll = millis();
 
   // Local "only once" guards
-  static bool confirmedHandled = false;
-  static bool pendingBuzzerHandled = false;
+  static bool PendingBuzzStarts = false;
+  static bool ConfirmedBuzzStarts = false;
 
   if (!Firebase.RTDB.getString(&fbdo, "/fall/status")) {
     Serial.println("❌ get /fall/status failed: " + fbdo.errorReason());
@@ -181,7 +160,7 @@ void pollFallStatusAndHandleBuzzer() {
   String status = fbdo.stringData();
   status.trim();
 
-  // User OK -> reset too NONE
+  // User OK -> reset to NONE
   if (status == "OK") {
     Serial.println("🛑 OK received -> stopping buzzer & resetting system");
 
@@ -190,8 +169,8 @@ void pollFallStatusAndHandleBuzzer() {
     digitalWrite(BUZZER_PIN, LOW);
 
     // Reset internal flags
-    confirmedHandled = false;
-    pendingBuzzerHandled = false;
+    PendingBuzzStarts = false;
+    ConfirmedBuzzStarts = false;
 
     // Clear Firebase state
     Firebase.RTDB.setString(&fbdo, "/fall/status", "NONE");
@@ -201,24 +180,29 @@ void pollFallStatusAndHandleBuzzer() {
   }
 
   if (status == "NONE") {
-    confirmedHandled = false;
-    pendingBuzzerHandled = false;
+    PendingBuzzStarts = false;
+    ConfirmedBuzzStarts = false;
     return;
   }
 
 
   // ✅ CONFIRMED -> buzzer ON only once,  NOT changing status 
   if (status == "CONFIRMED") {
-    if (!confirmedHandled) {
-      Serial.println("🚨 CONFIRMED -> buzzer ON (device will NOT clear status)");
+    if (!ConfirmedBuzzStarts) {
+      Serial.println("🚨 CONFIRMED -> buzzer ON");
       startBuzzer();
-      confirmedHandled = true;
+      ConfirmedBuzzStarts = true;
     }
     return;
   }
 
   // ✅ PENDING -> after delay, buzzer ON only once
   if (status == "PENDING") {
+    if (!PendingBuzzStarts) {
+      Serial.println("⏳ Pending -> buzzer ON");
+      startBuzzer();
+      PendingBuzzStarts = true;
+    }
     if (!Firebase.RTDB.getInt(&fbdo, "/fall/timestamp")) {
       Serial.println("❌ get /fall/timestamp failed: " + fbdo.errorReason());
       return;
@@ -235,17 +219,10 @@ void pollFallStatusAndHandleBuzzer() {
     }
 
     if (elapsed >= BUZZER_DELAY_S) {
-      if (!pendingBuzzerHandled) {
-        Serial.println("⏱️ Delay passed -> buzzer ON (and set CONFIRMED)");
-        startBuzzer();
-        pendingBuzzerHandled = true;
 
+        Serial.println("⏱️ 3 min passed -> buzzer ON again (and set CONFIRMED)");
         Firebase.RTDB.setString(&fbdo, "/fall/status", "CONFIRMED");
-      }
-    } else {
-      // If still pending, allow future trigger
-      pendingBuzzerHandled = false;
-    }
+    } 
 
     return;
   }
