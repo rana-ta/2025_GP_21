@@ -15,6 +15,9 @@
 #define API_KEY "AIzaSyB8qVAcLPsMS2tLEonGFsw7Yz8VFF9mtBo"
 #define DATABASE_URL "https://moeenapp-9a886-default-rtdb.firebaseio.com/"
 
+#define FALL_PATH "/fall"
+#define DEVICE_FALL_PATH "/devices/SD001/fall"
+
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
@@ -144,6 +147,27 @@ void mpu_read() {
 }
 
 // ---------- Send fall to Firebase: PENDING + timestamp ----------
+void sendFallPendingToFirebase(unsigned long tsSeconds ) {
+  Firebase.RTDB.setString(&fbdo, FALL_PATH "/status", "PENDING");
+  Firebase.RTDB.setString(&fbdo, DEVICE_FALL_PATH "/status", "PENDING");
+
+  Firebase.RTDB.setInt(&fbdo, FALL_PATH  "/timestamp", (int)tsSeconds);
+  Firebase.RTDB.setInt(&fbdo, DEVICE_FALL_PATH  "/timestamp", (int)tsSeconds);
+
+  Serial.println("✅ Firebase: PENDING sent");
+}
+
+// ---------- SINGLE FALL HANDLER (PENDING only, no immediate buzzer) ----------
+void triggerFallEvent() {
+  if (millis() - lastFallEvent < FALL_COOLDOWN_MS) return;
+  lastFallEvent = millis();
+
+  Serial.println("FALL DETECTED -> sent PENDING (waiting CONFIRMED or 1min)");
+  unsigned long tsSeconds  = millis() / 1000;
+  sendFallPendingToFirebase(tsSeconds );
+}
+
+// ---------- Poll Firebase: CONFIRMED now OR 3-min pending ----------
 void pollFallStatusAndHandleBuzzer() {
   if (millis() - lastStatusPoll < STATUS_POLL_MS) return;
   lastStatusPoll = millis();
@@ -173,8 +197,11 @@ void pollFallStatusAndHandleBuzzer() {
     ConfirmedBuzzStarts = false;
 
     // Clear Firebase state
-    Firebase.RTDB.setString(&fbdo, "/fall/status", "NONE");
-    Firebase.RTDB.setInt(&fbdo, "/fall/timestamp", 0);
+    Firebase.RTDB.setString(&fbdo, FALL_PATH "/status", "NONE");
+    Firebase.RTDB.setString(&fbdo, DEVICE_FALL_PATH "/status", "NONE");
+
+    Firebase.RTDB.setInt(&fbdo, FALL_PATH  "/timestamp", 0);
+    Firebase.RTDB.setInt(&fbdo, DEVICE_FALL_PATH  "/timestamp", 0);
 
     return;
   }
@@ -221,7 +248,9 @@ void pollFallStatusAndHandleBuzzer() {
     if (elapsed >= BUZZER_DELAY_S) {
 
         Serial.println("⏱️ 3 min passed -> buzzer ON again (and set CONFIRMED)");
-        Firebase.RTDB.setString(&fbdo, "/fall/status", "CONFIRMED");
+        Firebase.RTDB.setString(&fbdo, DEVICE_FALL_PATH "/status", "CONFIRMED");
+        Firebase.RTDB.setString(&fbdo, FALL_PATH "/status", "CONFIRMED");
+
     } 
 
     return;
@@ -229,7 +258,6 @@ void pollFallStatusAndHandleBuzzer() {
 
   // Any other unknown status -> do nothing
 }
-
 
 // ---------- Sensor reading ----------
 void handleSensorReading() {
@@ -405,7 +433,7 @@ void setup() {
 
   // I2C start
   Wire.begin();
-  Wire.setClock(100000); // 안정
+  Wire.setClock(100000);
 
   scanI2C(); //  if MPU/MAX/MLX are visible
 
