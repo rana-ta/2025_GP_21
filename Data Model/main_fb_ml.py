@@ -31,6 +31,7 @@ print("Firebase Running")
 
 input_ref = db.reference('/sensorData')
 pred_ref = db.reference('/Predections')
+predDevice_ref = db.reference('/devices/SD001/predictions')
 
 """Main Loop"""
 
@@ -78,7 +79,6 @@ def classify_health():
 
   prediction, result = combined_predections(pulse, temp, spo2)
 
-# result = "Normal" if prediction == 0 else "Abnormal"
 
   pred_ref.set({
         "predection": int(prediction),
@@ -87,7 +87,14 @@ def classify_health():
         "temperature": temp,
         "spo2": spo2
     })
-
+    
+  predDevice_ref.set({
+        "predection": int(prediction),
+        "HealthStatus": result,
+        "heartRate": pulse,
+        "temperature": temp,
+        "spo2": spo2
+    })
 def listener(event):
   print("New sensor data:", event.data)
   classify_health()
