@@ -911,10 +911,9 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
         "Name:$nameText\n"
         "Blood:$bloodText\n"
         "Phone:$phoneText\n"
-        "Allergy:$allergyText\n"
-        "Chronic:$chronicText\n"
-        "Location:$locationLink";
-
+        "Allerg:$allergyText\n"
+        "Chron:$chronicText\n"
+        "Map:$locationLink";
     debugPrint("🚨 SOS READY:\n$_preparedSOSMessage");
   }
 
