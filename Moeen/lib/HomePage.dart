@@ -29,11 +29,11 @@ class _Brand {
 /// Fixed Coordinates (Makkah)
 /// ==============================
 /// ✅ Kaaba Center (approx)
-const LatLng KAABA_CENTER = LatLng(21.422487, 39.826206);
+const LatLng KAABA_CENTER = LatLng(24.8040110, 46.6403646);
 
 /// ✅ Safa & Marwa
-const LatLng SAFA_POINT = LatLng(21.42183, 39.82749);
-const LatLng MARWA_POINT = LatLng(21.42524, 39.82726);
+const LatLng SAFA_POINT = LatLng(24.723413, 46.636778); // نقطة البداية (مثلاً طرف الغرفة)
+const LatLng MARWA_POINT = LatLng(24.72338, 46.63691);
 
 /// ==============================
 /// Vitals
@@ -178,13 +178,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   final PageController _page = PageController(viewportFraction: 0.88);
   int _current = 0;
 
-  final List<_DuaItem> _duas = const [
-    _DuaItem('O Allah, make it easy and accept from us.'),
-    _DuaItem('Our Lord, grant us good in this world and the Hereafter.'),
-    _DuaItem('O Turner of hearts, keep my heart firm upon Your path.'),
-    _DuaItem('My Lord, forgive me, my parents, and the believers.'),
-  ];
-
   final List<_DiscoveryCard> _cards = const [
     _DiscoveryCard(
       title: 'How to perform Umrah',
@@ -233,11 +226,6 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
         const PrayerTimesHeroCard(),
         const SizedBox(height: 20),
 
-        const SectionTitle('Suggested Duas'),
-        const SizedBox(height: 10),
-        _buildSuggestedDuas(),
-        const SizedBox(height: 20),
-
         const SectionTitle('Auto Counter (GPS)'),
         const SizedBox(height: 10),
         const TawafAutoCounterCard(),
@@ -282,80 +270,7 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
       ],
     );
   }
-
-  Widget _buildSuggestedDuas() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _duas.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.18,
-      ),
-      itemBuilder: (_, i) {
-        final d = _duas[i];
-        return CardShell(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  d.text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    height: 1.4,
-                    fontSize: 13.5,
-                  ),
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(Icons.favorite_rounded, color: _Brand.gold, size: 18),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      "Quick Dua",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    height: 36,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text("Add Dua"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _Brand.gold,
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          textStyle: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
-/// ==============================
-/// Prayer Times Hero Card (FINAL EN - NO OVERFLOW)
-/// ==============================
 /// ==============================
 /// Prayer Times Hero Card (FINAL EN - NO OVERFLOW)
 /// ==============================
@@ -489,7 +404,7 @@ class _PrayerTimesHeroCardState extends State<PrayerTimesHeroCard> {
           ],
         ),
         child: SizedBox(
-          height: 268, // ✅ FINAL: fixes overflow without shrinking spacing
+          height: 268,
           child: Stack(
             children: [
               Positioned.fill(
@@ -514,7 +429,6 @@ class _PrayerTimesHeroCardState extends State<PrayerTimesHeroCard> {
                 ),
               ),
 
-              // Top Row
               Positioned(
                 top: 10,
                 left: 10,
@@ -549,7 +463,6 @@ class _PrayerTimesHeroCardState extends State<PrayerTimesHeroCard> {
                 ),
               ),
 
-              // ✅ Fixed content area (prevents overflow always)
               Positioned(
                 top: 52,
                 left: 12,
@@ -589,7 +502,6 @@ class _PrayerTimesHeroCardState extends State<PrayerTimesHeroCard> {
   }
 }
 
-/// ===== Center: next prayer + countdown =====
 class _PrayerCenter extends StatelessWidget {
   final Map<String, DateTime> times;
   const _PrayerCenter({required this.times});
@@ -623,7 +535,6 @@ class _PrayerCenter extends StatelessWidget {
   }
 }
 
-/// ===== Strip: same level, only next prayer is gold =====
 class _PrayerStrip extends StatelessWidget {
   final Map<String, DateTime> times;
   const _PrayerStrip({required this.times});
@@ -642,7 +553,7 @@ class _PrayerStrip extends StatelessWidget {
     ];
 
     return SizedBox(
-      height: 88, // ✅ ثابت ويضمن نفس المستوى للجميع
+      height: 88,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: items.map((e) {
@@ -671,8 +582,6 @@ class _PrayerStrip extends StatelessWidget {
                   children: [
                     Icon(icon, size: 20, color: color),
                     const SizedBox(height: 6),
-
-                    // ✅ يمنع تكسير النص (Maghrib وغيرها)
                     SizedBox(
                       height: 16,
                       child: FittedBox(
@@ -690,9 +599,7 @@ class _PrayerStrip extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 4),
-
                     SizedBox(
                       height: 16,
                       child: FittedBox(
@@ -710,11 +617,6 @@ class _PrayerStrip extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 6),
-
-                    // ✅ مؤشر للصلاة القادمة فقط (على نفس المستوى)
-
                   ],
                 ),
               ),
@@ -725,9 +627,7 @@ class _PrayerStrip extends StatelessWidget {
     );
   }
 }
-/// ==============================
-/// Prayer Helpers (EN labels)
-/// ==============================
+
 String _fmtTime(DateTime dt) {
   int h = dt.hour % 12;
   if (h == 0) h = 12;
@@ -746,20 +646,13 @@ String _countdown(Duration d) {
 
 String _label(String k) {
   switch (k) {
-    case "fajr":
-      return "Fajr";
-    case "sunrise":
-      return "Sunrise";
-    case "dhuhr":
-      return "Dhuhr";
-    case "asr":
-      return "Asr";
-    case "maghrib":
-      return "Maghrib";
-    case "isha":
-      return "Isha";
-    default:
-      return k;
+    case "fajr": return "Fajr";
+    case "sunrise": return "Sunrise";
+    case "dhuhr": return "Dhuhr";
+    case "asr": return "Asr";
+    case "maghrib": return "Maghrib";
+    case "isha": return "Isha";
+    default: return k;
   }
 }
 
@@ -782,9 +675,7 @@ _Next _nextPrayer(Map<String, DateTime> t) {
   final fajr = t["fajr"]!.add(const Duration(days: 1));
   return _Next("fajr", fajr, fajr.difference(now));
 }
-/// ==============================
-/// GPS Tawaf Counter UI (GPS ONLY)
-/// ==============================
+
 class TawafAutoCounterCard extends StatefulWidget {
   const TawafAutoCounterCard({super.key});
 
@@ -924,9 +815,6 @@ class _TawafAutoCounterCardState extends State<TawafAutoCounterCard> {
   }
 }
 
-/// ==============================
-/// GPS Sa'i Counter UI (GPS ONLY)
-/// ==============================
 class SaiAutoCounterCard extends StatefulWidget {
   const SaiAutoCounterCard({super.key});
 
@@ -1068,9 +956,6 @@ class _SaiAutoCounterCardState extends State<SaiAutoCounterCard> {
   }
 }
 
-/// ==============================
-/// Logic: Tawaf via GPS angle accumulation
-/// ==============================
 class TawafGpsCounter {
   final int totalLaps;
   final double centerLat;
@@ -1135,9 +1020,6 @@ class TawafGpsCounter {
   }
 }
 
-/// ==============================
-/// Logic: Sa'i via reaching endpoints
-/// ==============================
 class LatLng {
   final double lat;
   final double lng;
@@ -1206,9 +1088,6 @@ class SaiGpsCounter {
   double _deg2rad(double d) => d * (math.pi / 180);
 }
 
-/// ==============================
-/// UI: Start button (glowy)
-/// ==============================
 class StartRitualButton extends StatefulWidget {
   final String title;
   final String subtitle;
@@ -1340,9 +1219,6 @@ class _StartRitualButtonState extends State<StartRitualButton> with SingleTicker
   }
 }
 
-/// ==============================
-/// Discovery Tile
-/// ==============================
 class _DiscoveryCard {
   final String title;
   final String subtitle;
@@ -1426,9 +1302,6 @@ class _DiscoveryTile extends StatelessWidget {
   }
 }
 
-/// ==============================
-/// Shared Widgets
-/// ==============================
 class CardShell extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -1473,9 +1346,4 @@ class SectionTitle extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DuaItem {
-  final String text;
-  const _DuaItem(this.text);
 }
