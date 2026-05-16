@@ -183,6 +183,8 @@ void pollFallStatusAndHandleBuzzer() {
 
   String status = fbdo.stringData();
   status.trim();
+  
+  Firebase.RTDB.setString(&fbdo, FALL_PATH "/status", status);
 
   // User OK -> reset to NONE
   if (status == "OK") {
@@ -230,7 +232,7 @@ void pollFallStatusAndHandleBuzzer() {
       startBuzzer();
       PendingBuzzStarts = true;
     }
-    if (!Firebase.RTDB.getInt(&fbdo, "/fall/timestamp")) {
+    if (!Firebase.RTDB.getInt(&fbdo, DEVICE_FALL_PATH"/timestamp")) {
       Serial.println("❌ get /fall/timestamp failed: " + fbdo.errorReason());
       return;
     }
