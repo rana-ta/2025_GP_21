@@ -69,9 +69,9 @@ _ChatMsg.bot("“Allahumma la sahla illa ma ja’altahu sahla…” ✅", time: 
 
 final List<String> _quickPrompts = const [
 "Tawaf steps",
-"Sa’i intention",
-"Dua for forgiveness",
-"What to do if lost?",
+"Ihram prohibition",
+"Are Tawaf rak'ahs mandatory",
+"what to do after Sa'i?",
 ];
 
 bool _online = true;
