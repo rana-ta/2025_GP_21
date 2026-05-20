@@ -29,11 +29,11 @@ class _Brand {
 /// Fixed Coordinates (Makkah)
 /// ==============================
 /// ✅ Kaaba Center (approx)
-const LatLng KAABA_CENTER = LatLng(24.8040110, 46.6403646);
+const LatLng KAABA_CENTER = LatLng(21.422487, 39.826206);
 
 /// ✅ Safa & Marwa
-const LatLng SAFA_POINT = LatLng(24.723413, 46.636778); // نقطة البداية (مثلاً طرف الغرفة)
-const LatLng MARWA_POINT = LatLng(24.72338, 46.63691);
+const LatLng SAFA_POINT = LatLng(21.42184, 39.82749);
+const LatLng MARWA_POINT = LatLng( 21.42525, 39.82725,);
 
 /// ==============================
 /// Vitals
@@ -790,10 +790,7 @@ class _TawafAutoCounterCardState extends State<TawafAutoCounterCard> {
             borderRadius: BorderRadius.circular(20),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Note: Tawaf needs real movement around the Kaaba center (indoor testing won't work well).",
-            style: TextStyle(color: Colors.white70, fontSize: 12.5),
-          ),
+
         ],
       ),
     );
@@ -930,11 +927,7 @@ class _SaiAutoCounterCardState extends State<SaiAutoCounterCard> {
             borderRadius: BorderRadius.circular(20),
           ),
           const SizedBox(height: 8),
-          Text(
-            "Safa: (${SAFA_POINT.lat.toStringAsFixed(5)}, ${SAFA_POINT.lng.toStringAsFixed(5)})\n"
-                "Marwa: (${MARWA_POINT.lat.toStringAsFixed(5)}, ${MARWA_POINT.lng.toStringAsFixed(5)})",
-            style: TextStyle(color: Colors.white.withOpacity(0.70), fontSize: 12.5, height: 1.4),
-          ),
+
         ],
       ),
     );
@@ -991,7 +984,7 @@ class TawafGpsCounter {
       _acc += d;
 
       const twoPi = 2 * math.pi;
-      while (_acc.abs() >= twoPi) {
+      while (_acc.abs() >= twoPi && laps < totalLaps) {
         laps += 1;
         _acc -= twoPi * _acc.sign;
       }
@@ -1052,41 +1045,41 @@ class SaiGpsCounter {
 
   void onPoint(LatLng p, {double? accuracy}) {
     if (accuracy != null && accuracy > 25) return;
+    if (legs >= totalLegs) return;
 
     final dA = _distanceMeters(p, pointA);
     final dB = _distanceMeters(p, pointB);
 
-    if (_need == _Need.a && dA <= reachMeters) {
+
+    if (legs == 0 && _need == _Need.a && dA <= reachMeters) {
       _need = _Need.b;
       return;
     }
+
 
     if (_need == _Need.b && dB <= reachMeters) {
       legs += 1;
       _need = _Need.a;
       return;
     }
-  }
 
+
+    if (_need == _Need.a && dA <= reachMeters) {
+      legs += 1;
+      _need = _Need.b;
+      return;
+    }
+  }
   double get progress01 => (legs / totalLegs).clamp(0, 1);
 
   double _distanceMeters(LatLng p1, LatLng p2) {
-    const r = 6371000.0;
-    final dLat = _deg2rad(p2.lat - p1.lat);
-    final dLng = _deg2rad(p2.lng - p1.lng);
-
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_deg2rad(p1.lat)) *
-            math.cos(_deg2rad(p2.lat)) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return r * c;
-  }
-
-  double _deg2rad(double d) => d * (math.pi / 180);
-}
+    return Geolocator.distanceBetween(
+      p1.lat,
+      p1.lng,
+      p2.lat,
+      p2.lng,
+    );
+  }}
 
 class StartRitualButton extends StatefulWidget {
   final String title;
