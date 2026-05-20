@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// ✅ ChatBot UI (Tab-friendly)
-/// - No Scaffold
-/// - No AppBar
-/// - Works inside HomePage IndexedStack
 class ChatBotPage extends StatefulWidget {
   const ChatBotPage({super.key});
 
