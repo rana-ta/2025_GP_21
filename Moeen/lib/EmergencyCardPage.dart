@@ -33,9 +33,9 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
 
   // SOS & TEST numbers
   static const String kSosPhone =
-      '0554358805'; // Example SOS number for testing
+      '0502104861'; // Example SOS number for testing
   static const String kTestPhone =
-      '0554358805'; // Put your test number here, then clear it later if needed
+      '0502104861'; // Put your test number here, then clear it later if needed
 
   // Brand
   static const gold = Color(0xFFD4AF37);
@@ -894,25 +894,26 @@ class _EmergencyCardPageState extends State<EmergencyCardPage>
     }
   }
   void _prepareSOSPayload() {
-    final statusText = healthStatus.trim().isEmpty ? "-" : healthStatus;
+    final statusText = _currentAlertSource == AlertSource.fall
+        ? "FALL"
+        : (healthStatus.trim().isEmpty ? "-" : healthStatus);
     final nameText = fullName.trim().isEmpty ? "-" : fullName;
+    final idText = idNumber.trim().isEmpty ? "-" : idNumber;
     final bloodText = bloodType.trim().isEmpty ? "-" : bloodType;
     final phoneText = emergencyPhone.trim().isEmpty ? "-" : emergencyPhone;
     final allergyText = allergies.trim().isEmpty ? "-" : allergies;
     final chronicText = chronic.trim().isEmpty ? "-" : chronic;
-
+    final medsText = meds.trim().isEmpty ? "-" : meds;
+    final ageText = age.trim().isEmpty ? "-" : age;
     final locationLink = (_lastLat != null && _lastLng != null)
         ? "https://maps.google.com/?q=${_lastLat!.toStringAsFixed(5)},${_lastLng!.toStringAsFixed(5)}"
         : "Unavailable";
 
     _preparedSOSMessage =
-    "Moeen Team Alert\n"
-        "Status:$statusText \n"
-        "Name:$nameText\n"
-        "Blood:$bloodText\n"
-        "Phone:$phoneText\n"
-        "Allerg:$allergyText\n"
-        "Chron:$chronicText\n"
+    "Status:$statusText \n"
+        "Name:$nameText"", ""ID:$idText"", ""age:$ageText\n"
+        "Blood:$bloodText"", ""Phone:$phoneText\n"
+        "Allerg:$allergyText "", ""Chron:$chronicText"", ""Meds:$medsText\n"
         "Map:$locationLink";
     debugPrint("🚨 SOS READY:\n$_preparedSOSMessage");
   }
